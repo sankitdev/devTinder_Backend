@@ -3,15 +3,12 @@ const connectDB = require("../src/config/database");
 const app = express();
 const User = require("./models/user");
 // Make sure to connect to database first after then start server.
+app.use(express.json());
 app.post("/signup", async (req, res) => {
-  const userData = User({
-    firstName: "Ankit",
-    lastName: "Singh",
-    email: "ankitsingh@gmail.com",
-  });
+  const userData = User(req.body);
   try {
-    await userData.save();
     res.send("User is registered");
+    await userData.save();
   } catch (error) {
     console.error("Error", error);
   }
