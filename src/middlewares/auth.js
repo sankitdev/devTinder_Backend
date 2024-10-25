@@ -7,7 +7,16 @@ const authAdmin = (req, res, next) => {
     next();
   }
 };
-
+const authTest = (req, res, next) => {
+  const token = "ankit";
+  const userAuth = "ankitey";
+  if (userAuth !== token) {
+    res.status(401).send("Wrong token of test");
+  } else {
+    next();
+  }
+};
 module.exports = {
   authAdmin,
+  authTest,
 };

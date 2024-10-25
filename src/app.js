@@ -2,7 +2,7 @@ const express = require("express");
 const connectDB = require("../src/config/database");
 const app = express();
 const UserModel = require("./models/user");
-const { authAdmin } = require("./middlewares/auth");
+const { authAdmin, authTest } = require("./middlewares/auth");
 // Make sure to connect to database first after then start server.
 app.use(express.json());
 app.use("/admin", authAdmin);
@@ -11,6 +11,9 @@ app.get("/admin/getAllData", (req, res, next) => {
 });
 app.get("/admin/showData", (req, res, next) => {
   res.send("You have access to showData");
+});
+app.get("/test", authTest, (req, res) => {
+  res.send("Testing the protected route");
 });
 app.post("/signup", async (req, res) => {
   const userData = UserModel(req.body);
