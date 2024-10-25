@@ -5,15 +5,19 @@ const UserModel = require("./models/user");
 const { authAdmin, authTest } = require("./middlewares/auth");
 // Make sure to connect to database first after then start server.
 app.use(express.json());
-app.use("/admin", authAdmin);
-app.get("/admin/getAllData", (req, res, next) => {
-  res.send("You have access to All Data");
+app.get("/test", (req, res) => {
+  try {
+    throw new Error("Apple is here");
+    res.send("Somethig wromg");
+  } catch (error) {
+    // console.error("Error is here bro", error);
+    res.status(500).send("something went wrong");
+  }
 });
-app.get("/admin/showData", (req, res, next) => {
-  res.send("You have access to showData");
-});
-app.get("/test", authTest, (req, res) => {
-  res.send("Testing the protected route");
+app.use("/", (err, req, res, next) => {
+  if (err) {
+    res.status(500).send("something went wrong");
+  }
 });
 app.post("/signup", async (req, res) => {
   const userData = UserModel(req.body);
