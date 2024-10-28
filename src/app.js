@@ -1,11 +1,14 @@
 const express = require("express");
+const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
 const connectDB = require("../src/config/database");
 const app = express();
+const jwt = require("jsonwebtoken");
 const { signupValidate } = require("./utils/signupValidate");
 const UserModel = require("./models/user");
-
+const { authUser } = require("../src/middlewares/auth");
 app.use(express.json());
+app.use(cookieParser());
 
 app.use("/", (err, req, res, next) => {
   if (err) {
@@ -53,12 +56,15 @@ app.post("/login", async (req, res) => {
     if (!user) {
       return res.status(401).send("Invalid Credentials"); // User not found
     }
-    const passCheck = await bcrypt.compare(password, user.password);
-    if (!passCheck) {
+    const isPassValid = await bcrypt.compare(password, user.password);
+    if (isPassValid) {
+      // Create a jwt token
+      const token = jwt.sign({ id: user._id }, "Ankit@Singh");
+      res.cookie("token", token);
+      res.send("Login Successfull");
+    } else {
       return res.status(401).send("Invalid Credentials"); // Password does not match
     }
-
-    res.send("Login Successfull");
   } catch (error) {
     console.error("Login error:", error); // Log the error for debugging
     res.status(500).send("Internal server error"); // Send a generic error response
@@ -112,17 +118,13 @@ app.patch("/user/:id", async (req, res) => {
   }
 });
 
-app.post("/user", async (req, res) => {
-  const { email } = req.body;
+app.get("/profile", authUser, (req, res) => {
   try {
-    const user = await UserModel.findOne({ email: email });
-    if (user) {
-      res.send("User Found" + user.password);
-    } else {
-      res.status(404).send("User not found");
-    }
+    const user = req.user;
+    console.log(user);
+    res.send("User fetched Sucessfully");
   } catch (error) {
-    res.status(500).send("Internal Server Error");
+    res.status(500).send("Error: " + error.message);
   }
 });
 
