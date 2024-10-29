@@ -1,48 +1,73 @@
 const express = require("express");
 const profileRouter = express.Router();
 const { authUser } = require("../middlewares/auth");
+const bcrypt = require("bcrypt");
 
-profileRouter.get("/profile", authUser, (req, res) => {
+profileRouter.get("/profile/view", authUser, (req, res) => {
   try {
     const user = req.user;
-    res.send("User fetched Sucessfully" + user);
+    const userData = {
+      id: user._id,
+      name: user.firstName,
+      email: user.email,
+      // Add other non-sensitive fields you want to include in the response
+    };
+    res.json({ message: "User fetched successfully", user: userData });
   } catch (error) {
     res.status(500).send("Error: " + error.message);
   }
 });
 
-profileRouter.patch("/profile/:id", async (req, res) => {
-  const id = req.params.id;
-  const data = req.body;
-  console.log(id, data);
-
+profileRouter.patch("/profile/update", authUser, async (req, res) => {
+  const ALLOWED_UPDATES = [
+    "firstName",
+    "lastName",
+    "age",
+    "about",
+    "skills",
+    "photoUrl",
+  ];
   try {
-    const ALLOWED_UPDATES = [
-      "id",
-      "firstName",
-      "lastName",
-      "photoUrl",
-      "skills",
-    ];
-
-    const isUpdateAllowed = Object.keys(data).every((key) =>
-      ALLOWED_UPDATES.includes(key)
+    const updates = Object.keys(req.body);
+    const isUpdateAllowed = updates.every((keys) =>
+      ALLOWED_UPDATES.includes(keys)
     );
-
     if (!isUpdateAllowed) {
-      throw new Error("Update not allowed for one or more fields.");
+      throw new Error("Update can't be applied to one or more fields");
     }
-    if (data?.skills.length > 5) {
-      throw new Error("Can't add more than 5 skills");
-    }
-    const user = await UserModel.findByIdAndUpdate(id, data, {
-      new: true,
-      runValidators: true,
-    });
-    if (!user) return res.status(404).send("User not found");
-    res.send("User updated successfully");
+    const user = req.user;
+    updates.forEach((update) => (user[update] = req.body[update]));
+    const updatedUser = await user.save();
+    res.send(updatedUser);
   } catch (error) {
-    res.status(500).send("Update Failed: " + error);
+    res.status(400).json({ message: `Error, ${error.message}` });
+  }
+});
+
+profileRouter.patch("/profile/password", authUser, async (req, res) => {
+  try {
+    const allowdFields = ["password", "newpassword"];
+    const fieldsToUpdate = Object.keys(req.body);
+    const isUpdateAllowed = fieldsToUpdate.every((keys) =>
+      allowdFields.includes(keys)
+    );
+    if (!isUpdateAllowed)
+      return res.status(400).json({
+        error: "Only 'password' and 'newpassword' fields are allowed.",
+      });
+    const user = req.user;
+    const isPassValid = await user.validatePassword(req.body.password);
+    if (!isPassValid) return res.json({ error: "Incorrect current password." });
+    const newPassword = req.body.newpassword;
+    const newPassHash = await bcrypt.hash(newPassword, 10);
+    user.password = newPassHash;
+    await user.save();
+    res.json({
+      message: `${user.firstName}, your password has been changed successfully.`,
+    });
+  } catch (error) {
+    console.error("Error updating password:", error);
+    res.status(500).json({ error: "An internal server error occurred." });
   }
 });
 
