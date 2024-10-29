@@ -6,10 +6,11 @@ const authUser = async (req, res, next) => {
     if (!token) {
       throw new Error("Not found Token");
     }
-    var decoded = jwt.verify(token, "Ankit@Singh");
-    const user = await UserModel.findById(decoded.id);
+    const decoded = jwt.verify(token, "Ankit@Singh");
+    const user = await UserModel.findById(decoded);
     if (!user) throw new Error("Something went wrong");
     req.user = user;
+
     next();
   } catch (error) {
     res.status(500).send("Error: " + error.message);
