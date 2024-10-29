@@ -40,11 +40,7 @@ const userSchema = new mongoose.Schema(
     },
     gender: {
       type: String,
-      validate(value) {
-        if (!["male", "female", "others"].includes(value)) {
-          throw new Error("Please Enter Correct Gender");
-        }
-      },
+      enum: ["male", "female", "others"],
     },
     photoUrl: {
       type: String,
@@ -53,6 +49,11 @@ const userSchema = new mongoose.Schema(
           throw new Error("Give proper URL");
         }
       },
+    },
+    about: {
+      type: String,
+      default: "Hi there I am a Software Enginner",
+      maxLength: 100,
     },
     skills: {
       type: [String],
