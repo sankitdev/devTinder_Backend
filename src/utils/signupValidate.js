@@ -1,6 +1,7 @@
 const validator = require("validator");
 const signupValidate = (req) => {
-  const { firstName, age, gender, email, password, skills } = req.body;
+  const { firstName, lastName, age, gender, email, password, skills, about } =
+    req.body;
 
   if (!firstName) {
     throw new Error("Enter FirstName");
@@ -9,6 +10,9 @@ const signupValidate = (req) => {
     throw new Error(
       "FirstName can't be less than 4 characters and greater than 40 characters"
     );
+  }
+  if (lastName && lastName.length > 40) {
+    throw new Error("LastName can't be more than 40 characters");
   }
   if (age < 12 || age > 80) {
     throw new Error("Enter age between 12 to 80");
@@ -29,6 +33,9 @@ const signupValidate = (req) => {
     throw new Error("Skills Can't be Empty");
   } else if (skills.length > 20) {
     throw new Error("You have reached the maximum length for Skills");
+  }
+  if (about && about.length > 100) {
+    throw new Error("About can't be more than 100 character");
   }
   //   if (!validator.isURL(photoUrl)) {
   //     throw new Error("Enter correct photo URL");
