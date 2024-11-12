@@ -10,7 +10,6 @@ const authUser = async (req, res, next) => {
     const user = await UserModel.findById(decoded);
     if (!user) throw new Error("Something went wrong");
     req.user = user;
-
     next();
   } catch (error) {
     res.status(500).send("Error: " + error.message);
