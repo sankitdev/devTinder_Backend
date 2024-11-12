@@ -11,6 +11,10 @@ authRotuer.post("/signup", async (req, res) => {
 
   try {
     signupValidate(req);
+    const emailCheck = await UserModel.findOne({ email: email });
+    if (emailCheck) {
+      return res.status(404).json({ message: "Email already exists" });
+    }
     const hashPass = await bcrypt.hash(password, 10);
     const userData = UserModel({
       firstName,
@@ -21,6 +25,7 @@ authRotuer.post("/signup", async (req, res) => {
       skills,
       photoUrl,
     });
+
     await userData.save();
     res.send("User is registered");
   } catch (error) {
