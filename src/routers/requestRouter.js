@@ -20,7 +20,12 @@ requestRouter.post(
         res.status(404).json({ message: "User not found" });
         return;
       }
-
+      const isSame = fromUserId.equals(toUserId);
+      if (isSame) {
+        return res
+          .status(404)
+          .json({ message: "Error Sending Request Self Send" });
+      }
       const existingConnectionRequest = await ConnectionRequestModel.findOne({
         $or: [
           { fromUserId, toUserId },
