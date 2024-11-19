@@ -29,15 +29,8 @@ authRotuer.post("/signup", async (req, res) => {
     await userData.save();
     res.send("User is registered");
   } catch (error) {
-    console.error("Signup error:", error);
-
-    if (error.message.includes("validation")) {
-      res
-        .status(400)
-        .json({ error: "Validation failed", details: error.message });
-    } else {
-      res.status(500).json({ error: "Internal server error" });
-    }
+    console.error("Signup error:", error.message);
+    res.status(401).send({ message: "Signup error:" + error.message });
   }
 });
 authRotuer.post("/login", async (req, res) => {
